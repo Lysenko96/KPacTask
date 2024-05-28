@@ -53,7 +53,10 @@ public class KPacSetService {
         for(KPacKPacSet kPacKPacSet :kPacKPacSets) {
             Long kPacId = kPacKPacSet.getKPacId();
             Long kPacSetId = kPacKPacSet.getKPacSetId();
-            kPacKPacSetDtos.add(new KPacKPacSetDto(kPacId, kPacs.get(Math.toIntExact(kPacId)-1), kPacSets.get(Math.toIntExact(kPacSetId)-1), kPacSetId));
+            kPacKPacSetDtos.add(new KPacKPacSetDto(kPacId,
+                    kPacs.stream().filter(kPac -> kPac.getKPacId().equals(kPacId)).findAny().orElse(null),
+                    kPacSets.stream().filter(kPacSet -> kPacSet.getKPacSetId().equals(kPacSetId)).findAny().orElse(null),
+                    kPacSetId));
         }
         modelAndView.addObject("kPacKPacSetDto", kPacKPacSetDtos.stream().filter(kPacKPacSetDto -> kPacKPacSetDto.getKPacSetId().equals(id)).collect(Collectors.toList()));
         return modelAndView;

@@ -13,6 +13,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,16 +25,12 @@ public class KPacSetService {
     private final JdbcKPacKPacSetDao jdbcKPacKPacSetDao;
 
     public ModelAndView getModelAndViewBySets(ModelAndView modelAndView) {
-        List<KPacKPacSet> kPacKPacSets = jdbcKPacKPacSetDao.getAll();
         List<KPacSet> kPacSets = jdbcKPacSetDao.getAll();
-        List<KPac> kPacs = jdbcKPacDao.getAll();
-        List<Long> kPacIdByKPacSet = new ArrayList<>();
-        for(KPacKPacSet kPacKPacSet : kPacKPacSets) {
-            Long kPacId = kPacKPacSet.getKPacId();
-            kPacIdByKPacSet.add(kPacId);
-        }
+        List<KPacKPacSet> kPacKPacSets = jdbcKPacKPacSetDao.getAll();
+        Set<Long> kPacIds = kPacKPacSets.stream().map(KPacKPacSet::getKPacId).collect(Collectors.toSet());
+        List<KPac> freeKPacs = jdbcKPacDao.getAllWithoutSetId(kPacIds);
         modelAndView.addObject("kPacSets", kPacSets);
-        modelAndView.addObject("FreeKPacs", kPacs.stream().filter(kPac -> !kPacIdByKPacSet.contains(kPac.getKPacId())).collect(Collectors.toList()));
+        modelAndView.addObject("FreeKPacs", freeKPacs);
         return modelAndView;
     }
 
@@ -46,26 +43,24 @@ public class KPacSetService {
     }
 
     public ModelAndView getSetById(Long id, ModelAndView modelAndView) {
-        List<KPacKPacSet> kPacKPacSets = jdbcKPacKPacSetDao.getAll();
-        List<KPac> kPacs = jdbcKPacDao.getAll();
-        List<KPacSet> kPacSets = jdbcKPacSetDao.getAll();
+        KPacSet kPacSet = jdbcKPacSetDao.getById(id);
+        List<KPacKPacSet> kPacKPacSets = jdbcKPacKPacSetDao.getAllKPacByIdSet(id);
+        Set<Long> kPacIds = kPacKPacSets.stream().map(KPacKPacSet::getKPacId).collect(Collectors.toSet());
+        List<KPac> kPacs = jdbcKPacDao.getAllBySetId(kPacIds);
         List<KPacKPacSetDto> kPacKPacSetDtos = new ArrayList<>();
-        for(KPacKPacSet kPacKPacSet :kPacKPacSets) {
+        for(KPacKPacSet kPacKPacSet : kPacKPacSets) {
             Long kPacId = kPacKPacSet.getKPacId();
-            Long kPacSetId = kPacKPacSet.getKPacSetId();
             kPacKPacSetDtos.add(new KPacKPacSetDto(kPacId,
                     kPacs.stream().filter(kPac -> kPac.getKPacId().equals(kPacId)).findAny().orElse(null),
-                    kPacSets.stream().filter(kPacSet -> kPacSet.getKPacSetId().equals(kPacSetId)).findAny().orElse(null),
-                    kPacSetId));
+                    kPacSet,
+                    id));
         }
-        modelAndView.addObject("kPacKPacSetDto", kPacKPacSetDtos.stream().filter(kPacKPacSetDto -> kPacKPacSetDto.getKPacSetId().equals(id)).collect(Collectors.toList()));
+        modelAndView.addObject("kPacKPacSetDto", kPacKPacSetDtos);
         return modelAndView;
     }
 
     public void deleteKPacSet(Long id) {
-        List<KPacKPacSet> kPacKPacSets = jdbcKPacKPacSetDao.getAll();
-        List<Long> kPacIds = kPacKPacSets.stream().filter(kPacKPacSet -> kPacKPacSet.getKPacSetId().equals(id)).map(KPacKPacSet::getKPacId).toList();
-        kPacIds.forEach(kPacId -> jdbcKPacKPacSetDao.deleteKPacKPacSet(kPacId, id));
+        jdbcKPacKPacSetDao.deleteKPacKPacSetByIdSet(id);
         jdbcKPacSetDao.deleteById(id);
     }
 }

@@ -35,4 +35,8 @@ public class KPacService {
         kPacSetIds.forEach(kPacSetId -> jdbcKPacKPacSetDao.deleteKPacKPacSet(id, kPacSetId));
         jdbcKPacDao.deleteById(id);
     }
+
+    public List<KPac> getAllKPacs(){
+        return jdbcKPacDao.getAll();
+    }
 }

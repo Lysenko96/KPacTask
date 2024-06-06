@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.sql.PreparedStatement;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -15,7 +16,8 @@ public class JdbcKPacKPacSetDao {
     private static final String ADD_K_PAC_K_PAC_SETS = "INSERT INTO k_pac_k_pac_sets(k_pac_id, k_pac_set_id) VALUES (?,?)";
     private static final String GET_K_PAC_K_PAC_SETS = "SELECT * FROM k_pac_k_pac_sets";
     private static final String GET_K_PAC_K_PAC_SETS_BY_ID_SET = "SELECT * FROM k_pac_k_pac_sets WHERE k_pac_set_id=?";
-    private static final String DELETE_K_PAC_K_PAC_SETS_BY_ID_SET = "DELETE FROM k_pac_k_pac_sets WHERE k_pac_id=? AND k_pac_set_id=?";
+    private static final String DELETE_K_PAC_K_PAC_SETS_BY_ID_SET_AND_K_PAC_ID = "DELETE FROM k_pac_k_pac_sets WHERE k_pac_id=? AND k_pac_set_id=?";
+    private static final String DELETE_K_PAC_K_PAC_SETS_BY_ID_SET = "DELETE FROM k_pac_k_pac_sets WHERE k_pac_set_id=?";
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -37,8 +39,8 @@ public class JdbcKPacKPacSetDao {
         });
     }
 
-    public KPacKPacSet getAllKPacByIdSet(Long idSet) {
-        return jdbcTemplate.queryForObject(GET_K_PAC_K_PAC_SETS_BY_ID_SET, (rs, rowNum) -> {
+    public List<KPacKPacSet> getAllKPacByIdSet(Long idSet) {
+        return jdbcTemplate.query(GET_K_PAC_K_PAC_SETS_BY_ID_SET, (rs, rowNum) -> {
             Long id = rs.getLong("k_pac_id");
             Long id_set = rs.getLong("k_pac_set_id");
             return new KPacKPacSet(id, id_set);
@@ -46,6 +48,10 @@ public class JdbcKPacKPacSetDao {
     }
 
     public void deleteKPacKPacSet(Long kPacId, Long kPacSetId) {
-        jdbcTemplate.update(DELETE_K_PAC_K_PAC_SETS_BY_ID_SET, kPacId, kPacSetId);
+        jdbcTemplate.update(DELETE_K_PAC_K_PAC_SETS_BY_ID_SET_AND_K_PAC_ID, kPacId, kPacSetId);
+    }
+
+    public void deleteKPacKPacSetByIdSet(Long kPacSetId) {
+        jdbcTemplate.update(DELETE_K_PAC_K_PAC_SETS_BY_ID_SET, kPacSetId);
     }
 }

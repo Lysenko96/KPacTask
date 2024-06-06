@@ -15,13 +15,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class KPacController {
 
-    private final JdbcKPacDao jdbcKPacDao;
     private final KPacService kPacService;
 
     @GetMapping
     public ModelAndView kpacs(ModelAndView modelAndView) {
-        List<KPac> kpacs =  jdbcKPacDao.getAll();
-        modelAndView.addObject("kpacs", kpacs);
+        List<KPac> kPacs = kPacService.getAllKPacs();
+        modelAndView.addObject("kpacs", kPacs);
         modelAndView.setViewName("/WEB-INF/static/kpacs.jsp");
 //        modelAndView.setViewName("/static/kpacs_dhtmlx.html");
         return modelAndView;

@@ -13,15 +13,15 @@ import org.springframework.stereotype.Component;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
 public class JdbcKPacDao implements KPacDao {
 
     private static final String GET_K_PAC = "SELECT * FROM k_pac WHERE k_pac_id=?";
+    private static final String GET_K_PAC_BY_SET_ID = "SELECT * FROM k_pac WHERE k_pac_id IN (%s)";
+    private static final String GET_K_PAC_BY_NOT_IN_SET_ID = "SELECT * FROM k_pac WHERE k_pac_id NOT IN (%s)";
     private static final String GET_K_PACS = "SELECT * FROM k_pac";
     private static final String UPDATE_K_PAC = "UPDATE k_pac SET title=?, description=?, createdAt=? WHERE k_pac_id=?";
     private static final String DELETE_K_PAC = "DELETE FROM k_pac WHERE k_pac_id=?";
@@ -53,6 +53,17 @@ public class JdbcKPacDao implements KPacDao {
 //            Date createdAt = rs.getDate("createdAt");
 //            return new KPac(id, title, description, createdAt);
 //        });
+    }
+
+
+    public List<KPac> getAllBySetId(Set<Long> kPacIds) {
+        String kPacIdsStr = String.join(",", Collections.nCopies(kPacIds.size(), "?"));
+        return jdbcTemplate.query(String.format(GET_K_PAC_BY_SET_ID, kPacIdsStr), rowMapper, kPacIds.toArray());
+    }
+
+    public List<KPac> getAllWithoutSetId(Set<Long> kPacIds) {
+        String kPacIdsStr = String.join(",", Collections.nCopies(kPacIds.size(), "?"));
+        return jdbcTemplate.query(String.format(GET_K_PAC_BY_NOT_IN_SET_ID, kPacIdsStr), rowMapper, kPacIds.toArray());
     }
 
     @Override
